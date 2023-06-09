@@ -1,4 +1,4 @@
-# Traddic Simulation
+# Traffic Simulation
 
 TO-DO list
 
