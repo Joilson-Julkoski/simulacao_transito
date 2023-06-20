@@ -6,7 +6,7 @@ function createSignal()
     sinaleiro.y = 300
 end
 
-function createCar(x, y, aceleracao, maxVelx, freio, observer, directionAxis, isInverted)
+function createCar(x, y, aceleracao, maxVelx, freio, observer, directionAxis, sinaleiro )
     local car = {}
     car.name = "car"
     car.x = x
@@ -17,6 +17,8 @@ function createCar(x, y, aceleracao, maxVelx, freio, observer, directionAxis, is
     car.freio = freio
     car.observer = observer
     car.direction = directionAxis
+    car.sinaleiro = sinaleiro
+
     car.acelerar = function(dt)
         if car.vel < maxVelx then
             car.vel = car.vel + car.aceleracao * dt
@@ -50,19 +52,35 @@ function createCar(x, y, aceleracao, maxVelx, freio, observer, directionAxis, is
         end
     end
 
+    car.mainIA = function(dt)
+        if car.direction == "x" then
+            car.x = car.x + car.vel * dt
+        elseif car.direction == "y" then
+            car.y = car.y + car.vel * dt
+        end
+        if car.observer == nil then
+            car.acelerar(dt)
+        else
+            if car.observer.x - car.x > car.vel + 20 or car.sinaleiro.open == true then
+                car.acelerar(dt)
+            else
+                car.freiar(dt)
+            end
+        end
+    end
     return car
 end
 
 function love.load()
     createSignal()
-    listOfCars = { createCar(10, 200, 100, 100, 200, sinaleiro, "x") }
+    listOfCars = { createCar(10, 200, 100, 100, 200, sinaleiro, "x", sinaleiro) }
     openTime = 0
     count = 0 
 end
 
 function love.update(dt)
     if listOfCars[#listOfCars].x > 20 then
-        table.insert(listOfCars, createCar(10, 200, 100, 300, 200, listOfCars[#listOfCars], "x"))
+        table.insert(listOfCars, createCar(10, 200, 100, 300, 200, listOfCars[#listOfCars], "x", sinaleiro))
     end
     if love.keyboard.isDown("space") then
         sinaleiro.open = true
@@ -92,6 +110,22 @@ function love.update(dt)
 end
 
 function love.draw()
+
+    for i = 0, 5, 1 do
+        for j = 0, 7, 1 do
+            if i % 2 == 0 and j % 2 == 0 then
+                love.graphics.setColor(love.math.colorFromBytes(50, 200, 50))
+            elseif ((i - 1) % 2 == 0) and ((j - 1) % 2 == 0) then
+                love.graphics.setColor(love.math.colorFromBytes(50, 200, 50))
+            
+            else
+                love.graphics.setColor(love.math.colorFromBytes(80, 200 , 60))
+            end
+            love.graphics.rectangle("fill", j * 100, i * 100, 100, 100)            
+
+        end
+    end
+    love.graphics.setColor(0, 0 , 0)
     for index, value in ipairs(listOfCars) do
         love.graphics.rectangle("fill", value.x, value.y, 10, 10)
     end
@@ -107,4 +141,5 @@ function love.draw()
     love.graphics.setColor(255, 255, 255)
     
     love.graphics.print(carsPerSecond .. " cars per second")
+    love.graphics.print("\ntotal de carros passados: " .. count)
 end
